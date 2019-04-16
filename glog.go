@@ -499,7 +499,6 @@ type loggingT struct {
 	filterIdentity bool
 	filterPhone    bool
 	// truncate long log message. default -1, not truncated
-	// bytes length not rune length
 	maxLogMessageLen int
 }
 
@@ -1037,10 +1036,9 @@ func (l *loggingT) output(s severity, buf *buffer, file string, line int, alsoTo
 		}
 	}
 	data := buf.Bytes()
-	// truncate bytes
-	// note: last char maybe not correct
-	if l.maxLogMessageLen > 0 && len(data) > l.maxLogMessageLen {
-		data = data[:l.maxLogMessageLen]
+	runes := []rune(string(data))
+	if l.maxLogMessageLen > 0 && len(runes) > l.maxLogMessageLen {
+		data = []byte(string(runes[:l.maxLogMessageLen-3]) + "...")
 	}
 	if !flag.Parsed() {
 		os.Stderr.Write([]byte("ERROR: logging before flag.Parse: "))

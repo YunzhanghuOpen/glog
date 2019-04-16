@@ -518,10 +518,11 @@ func BenchmarkHeader(b *testing.B) {
 func TestTrancated(t *testing.T) {
 	setFlags()
 	defer logging.swap(logging.newBuffers())
-	logging.maxLogMessageLen = 100
+	logging.maxLogMessageLen = 90
 	Info("testmaxlogmessagelen1234567890测试中文哈哈哈哈哈哈哈哈哈哈哈")
 	message := contents(infoLog)
-	if len([]byte(message)) > 100 {
+	fmt.Println(message)
+	if len([]rune(message)) > 90 {
 		t.Error("truncated failed")
 	}
 }

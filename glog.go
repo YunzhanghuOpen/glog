@@ -423,6 +423,7 @@ func init() {
 	flag.Var(&logging.vmodule, "vmodule", "comma-separated list of pattern=N settings for file-filtered logging")
 	flag.Var(&logging.traceLocation, "log_backtrace_at", "when logging hits line file:N, emit a stack trace")
 	flag.DurationVar(&logging.flushInterval, "flush_interval", defaultFlushInterval, "how often flush file")
+	flag.IntVar(&logging.maxLogMessageLen, "maxlogmessagelen", -1, "when logging a very long log message, it will be truncated by this length")
 
 	// Default stderrThreshold is ERROR.
 	logging.stderrThreshold = errorLog
@@ -497,6 +498,9 @@ type loggingT struct {
 	filterCard     bool
 	filterIdentity bool
 	filterPhone    bool
+	// truncate long log message. default -1, not truncated
+	// bytes length not rune length
+	maxLogMessageLen int
 }
 
 // buffer holds a byte Buffer for reuse. The zero value is ready for use.
@@ -1033,6 +1037,11 @@ func (l *loggingT) output(s severity, buf *buffer, file string, line int, alsoTo
 		}
 	}
 	data := buf.Bytes()
+	// truncate bytes
+	// note: last char maybe not correct
+	if l.maxLogMessageLen > 0 && len(data) > l.maxLogMessageLen {
+		data = data[:l.maxLogMessageLen]
+	}
 	if !flag.Parsed() {
 		os.Stderr.Write([]byte("ERROR: logging before flag.Parse: "))
 		os.Stderr.Write(data)

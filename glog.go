@@ -1036,9 +1036,12 @@ func (l *loggingT) output(s severity, buf *buffer, file string, line int, alsoTo
 		}
 	}
 	data := buf.Bytes()
-	runes := []rune(string(data))
-	if l.maxLogMessageLen > 0 && len(runes) > l.maxLogMessageLen {
-		data = []byte(string(runes[:l.maxLogMessageLen-3]) + "...")
+
+	if l.maxLogMessageLen > 0 {
+		runes := []rune(string(data))
+		if len(runes) > l.maxLogMessageLen {
+			data = []byte(string(runes[:l.maxLogMessageLen-3]) + "...")
+		}
 	}
 	if !flag.Parsed() {
 		os.Stderr.Write([]byte("ERROR: logging before flag.Parse: "))

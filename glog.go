@@ -426,7 +426,7 @@ func init() {
 	flag.Var(&logging.vmodule, "vmodule", "comma-separated list of pattern=N settings for file-filtered logging")
 	flag.Var(&logging.traceLocation, "log_backtrace_at", "when logging hits line file:N, emit a stack trace")
 	flag.DurationVar(&logging.flushInterval, "flush_interval", defaultFlushInterval, "how often flush file")
-	flag.IntVar(&logging.maxLogMessageLen, "maxlogmessagelen", -1, "when logging a very long log message, this value greater than 64 it will be truncate by this length")
+	flag.IntVar(&logging.maxLogMessageLen, "maxlogmessagelen", -1, "when logging a very long log message, this value greater than 64 it will be truncate")
 
 	// Default stderrThreshold is ERROR.
 	logging.stderrThreshold = errorLog
@@ -501,7 +501,7 @@ type loggingT struct {
 	filterCard     bool
 	filterIdentity bool
 	filterPhone    bool
-	// truncate long log message. default -1, less than 64 will not truncate
+	// truncate long log message. default -1, less than headerLength(64) will not truncate
 	maxLogMessageLen int
 }
 

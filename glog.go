@@ -117,6 +117,9 @@ const (
 
 const defaultFlushInterval = 30 * time.Second
 
+// header length. log message contains header. eg. "I0102 15:04:05.067890    1234 glog_test.go: "
+const headerLength = 64
+
 var (
 	Is2088BeginRe          = regexp.MustCompile(`^(2088)+[0-9]*$`)
 	IsPhoneNumberRe        = regexp.MustCompile(`^(1[3-9][0-9]\d{8})$`)
@@ -423,7 +426,7 @@ func init() {
 	flag.Var(&logging.vmodule, "vmodule", "comma-separated list of pattern=N settings for file-filtered logging")
 	flag.Var(&logging.traceLocation, "log_backtrace_at", "when logging hits line file:N, emit a stack trace")
 	flag.DurationVar(&logging.flushInterval, "flush_interval", defaultFlushInterval, "how often flush file")
-	flag.IntVar(&logging.maxLogMessageLen, "maxlogmessagelen", -1, "when logging a very long log message, it will be truncated by this length")
+	flag.IntVar(&logging.maxLogMessageLen, "maxlogmessagelen", -1, "when logging a very long log message, this value greater than 64 it will be truncate by this length")
 
 	// Default stderrThreshold is ERROR.
 	logging.stderrThreshold = errorLog
@@ -498,7 +501,7 @@ type loggingT struct {
 	filterCard     bool
 	filterIdentity bool
 	filterPhone    bool
-	// truncate long log message. default -1, not truncated
+	// truncate long log message. default -1, less than 64 will not truncate
 	maxLogMessageLen int
 }
 
@@ -1037,7 +1040,7 @@ func (l *loggingT) output(s severity, buf *buffer, file string, line int, alsoTo
 	}
 	data := buf.Bytes()
 
-	if l.maxLogMessageLen > 0 {
+	if l.maxLogMessageLen > headerLength {
 		runes := []rune(string(data))
 		if len(runes) > l.maxLogMessageLen {
 			data = []byte(string(runes[:l.maxLogMessageLen-3]) + "...")

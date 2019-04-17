@@ -19,6 +19,7 @@ package glog
 import (
 	"bytes"
 	"fmt"
+	"github.com/stretchr/testify/assert"
 	stdLog "log"
 	"path/filepath"
 	"runtime"
@@ -515,14 +516,24 @@ func BenchmarkHeader(b *testing.B) {
 	}
 }
 
-func TestTrancated(t *testing.T) {
+func TestTruncate(t *testing.T) {
 	setFlags()
 	defer logging.swap(logging.newBuffers())
 	logging.maxLogMessageLen = 90
 	Info("testmaxlogmessagelen1234567890测试中文哈哈哈哈哈哈哈哈哈哈哈")
+	a := assert.New(t)
 	message := contents(infoLog)
-	fmt.Println(message)
-	if len([]rune(message)) > 90 {
-		t.Error("truncated failed")
-	}
+	a.Equal(len([]rune(message)), 90)
+	a.True(strings.HasSuffix(message, "..."))
+	a.Contains(message, "testmaxlogmessagelen1234567890测试中文哈哈哈哈哈...")
+	logging.maxLogMessageLen = -1
+	Info("testmaxlogmessagelen1234567890测试中文哈哈哈哈哈哈哈哈哈哈哈")
+	message = contents(infoLog)
+	a.Contains(message, "testmaxlogmessagelen1234567890测试中文哈哈哈哈哈哈哈哈哈哈哈")
+	a.False(strings.HasSuffix(message, "..."))
+	logging.maxLogMessageLen = 64
+	Info("testmaxlogmessagelen1234567890测试中文哈哈哈哈哈哈哈哈哈哈哈")
+	message = contents(infoLog)
+	a.Contains(message, "testmaxlogmessagelen1234567890测试中文哈哈哈哈哈哈哈哈哈哈哈")
+	a.False(strings.HasSuffix(message, "..."))
 }

@@ -1043,7 +1043,7 @@ func (l *loggingT) output(s severity, buf *buffer, file string, line int, alsoTo
 	if l.maxLogMessageLen > headerLength {
 		runes := []rune(string(data))
 		if len(runes) > l.maxLogMessageLen {
-			data = []byte(string(runes[:l.maxLogMessageLen-3]) + "...")
+			data = []byte(string(runes[:l.maxLogMessageLen-3]) + "...\n")
 		}
 	}
 	if !flag.Parsed() {

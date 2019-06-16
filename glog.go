@@ -117,6 +117,9 @@ const (
 
 const defaultFlushInterval = 30 * time.Second
 
+// header length. log message contains header. eg. "I0102 15:04:05.067890    1234 glog_test.go: "
+const headerLength = 64
+
 var (
 	Is2088BeginRe          = regexp.MustCompile(`^(2088)+[0-9]*$`)
 	IsPhoneNumberRe        = regexp.MustCompile(`^(1[3-9][0-9]\d{8})$`)
@@ -423,6 +426,7 @@ func init() {
 	flag.Var(&logging.vmodule, "vmodule", "comma-separated list of pattern=N settings for file-filtered logging")
 	flag.Var(&logging.traceLocation, "log_backtrace_at", "when logging hits line file:N, emit a stack trace")
 	flag.DurationVar(&logging.flushInterval, "flush_interval", defaultFlushInterval, "how often flush file")
+	flag.IntVar(&logging.maxLogMessageLen, "maxlogmessagelen", -1, "when logging a very long log message, this value greater than 64 it will be truncate")
 
 	// Default stderrThreshold is ERROR.
 	logging.stderrThreshold = errorLog
@@ -497,6 +501,8 @@ type loggingT struct {
 	filterCard     bool
 	filterIdentity bool
 	filterPhone    bool
+	// truncate long log message. default -1, less than headerLength(64) will not truncate
+	maxLogMessageLen int
 }
 
 // buffer holds a byte Buffer for reuse. The zero value is ready for use.
@@ -722,6 +728,19 @@ func (l *loggingT) printf(s severity, format string, args ...interface{}) {
 		l.filter(tprintf, buf, format, args...)
 	} else {
 		fmt.Fprintf(buf, format, args...)
+	}
+	if buf.Bytes()[buf.Len()-1] != '\n' {
+		buf.WriteByte('\n')
+	}
+	l.output(s, buf, file, line, false)
+}
+
+func (l *loggingT) printfDepth(s severity, depth int, format string, args ...interface{}) {
+	buf, file, line := l.header(s, depth)
+	if l.filterCard || l.filterIdentity || l.filterPhone {
+		l.filter(tprintf, buf, format, args...)
+	} else {
+		fmt.Fprint(buf, args...)
 	}
 	if buf.Bytes()[buf.Len()-1] != '\n' {
 		buf.WriteByte('\n')
@@ -1020,6 +1039,13 @@ func (l *loggingT) output(s severity, buf *buffer, file string, line int, alsoTo
 		}
 	}
 	data := buf.Bytes()
+
+	if l.maxLogMessageLen > headerLength {
+		runes := []rune(string(data))
+		if len(runes) > l.maxLogMessageLen {
+			data = []byte(string(runes[:l.maxLogMessageLen-3]) + "...")
+		}
+	}
 	if !flag.Parsed() {
 		os.Stderr.Write([]byte("ERROR: logging before flag.Parse: "))
 		os.Stderr.Write(data)
@@ -1418,6 +1444,11 @@ func Infof(format string, args ...interface{}) {
 	logging.printf(infoLog, format, args...)
 }
 
+// InfofDepth use format and depth print together
+func InfofDepth(depth int, format string, args ...interface{}) {
+	logging.printfDepth(infoLog, depth, format, args...)
+}
+
 // Warning logs to the WARNING and INFO logs.
 // Arguments are handled in the manner of fmt.Print; a newline is appended if missing.
 func Warning(args ...interface{}) {
@@ -1442,6 +1473,11 @@ func Warningf(format string, args ...interface{}) {
 	logging.printf(warningLog, format, args...)
 }
 
+// WarningfDepth use format and depth print together
+func WarningfDepth(depth int, format string, args ...interface{}) {
+	logging.printfDepth(warningLog, depth, format, args...)
+}
+
 // Error logs to the ERROR, WARNING, and INFO logs.
 // Arguments are handled in the manner of fmt.Print; a newline is appended if missing.
 func Error(args ...interface{}) {
@@ -1464,6 +1500,11 @@ func Errorln(args ...interface{}) {
 // Arguments are handled in the manner of fmt.Printf; a newline is appended if missing.
 func Errorf(format string, args ...interface{}) {
 	logging.printf(errorLog, format, args...)
+}
+
+// ErrorfDepth use format and depth print together
+func ErrorfDepth(depth int, format string, args ...interface{}) {
+	logging.printfDepth(errorLog, depth, format, args...)
 }
 
 // Fatal logs to the FATAL, ERROR, WARNING, and INFO logs,
@@ -1491,6 +1532,11 @@ func Fatalln(args ...interface{}) {
 // Arguments are handled in the manner of fmt.Printf; a newline is appended if missing.
 func Fatalf(format string, args ...interface{}) {
 	logging.printf(fatalLog, format, args...)
+}
+
+// FatalfDepth use format and depth print together
+func FatalfDepth(depth int, format string, args ...interface{}) {
+	logging.printfDepth(fatalLog, depth, format, args...)
 }
 
 // fatalNoStacks is non-zero if we are to exit without dumping goroutine stacks.

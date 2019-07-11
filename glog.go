@@ -432,7 +432,7 @@ func init() {
 	logging.stderrThreshold = errorLog
 
 	// Default filter card/salary/identity
-	logging.SetFilter(true, true, true)
+	logging.SetFilter(true, true, true, true)
 
 	logging.setVState(0, nil, false)
 	go logging.flushDaemon()
@@ -501,6 +501,7 @@ type loggingT struct {
 	filterCard     bool
 	filterIdentity bool
 	filterPhone    bool
+	filterRealName bool
 	// truncate long log message. default -1, less than headerLength(64) will not truncate
 	maxLogMessageLen int
 }
@@ -514,10 +515,11 @@ type buffer struct {
 
 var logging loggingT
 
-func (l *loggingT) SetFilter(card, identity, phone bool) {
+func (l *loggingT) SetFilter(card, identity, phone, realName bool) {
 	l.filterCard = card
 	l.filterIdentity = identity
 	l.filterPhone = phone
+	l.filterRealName = realName
 }
 
 func (l *loggingT) SetCardFilter(card bool) {
@@ -791,6 +793,12 @@ func (l *loggingT) switchTag(val *reflect.Value, field *reflect.StructField, con
 			} else {
 				container[field.Name] = val.Interface()
 			}
+		case tag == "realname":
+			if ok && l.filterRealName {
+				container[field.Name] = ShrineRealName(str)
+			} else {
+				container[field.Name] = val.Interface()
+			}
 		case name == "RawQuery", name == "RequestURI", name == "Referrer":
 			if ok {
 				container[field.Name] = l.shrineRequestField(str, "&", "=")
@@ -919,6 +927,8 @@ func (l *loggingT) transform(v interface{}) interface{} {
 							tmpSlice[i] = ShrineIdentity(innerVal.Interface().(string))
 						case "phone_no", "mobile":
 							tmpSlice[i] = ShrinePhoneNumber(innerVal.Interface().(string))
+						case "realname", "real_name":
+							tmpSlice[i] = ShrineRealName(innerVal.Interface().(string))
 						default:
 							tmpSlice[i] = innerVal.Interface()
 						}
@@ -938,10 +948,11 @@ func (l *loggingT) transform(v interface{}) interface{} {
 					strings.Contains(keyStr, "bank_code") || strings.Contains(keyStr, "acct_id") || strings.Contains(keyStr, "bank_branch") ||
 					strings.Contains(keyStr, "ali_opponent_id") || strings.Contains(keyStr, "alipay_id") || strings.Contains(keyStr, "AlipayId")
 				haveBankInfo := keyStr == "customer_bank_info" || keyStr == "producer_bank_info" || keyStr == "CH_PRODUCER_BANK_INFO" || keyStr == "CH_CUSTOMER_BANK_INFO"
-				haveIdCard := keyStr == "id_card" || strings.Contains(keyStr, "IdCard")
+				haveIDCard := keyStr == "id_card" || strings.Contains(keyStr, "IdCard")
 				havePhone := strings.Contains(keyStr, "phone") || strings.Contains(keyStr, "Phone") || strings.Contains(keyStr, "PHONE") ||
 					strings.Contains(keyStr, "mobile") || strings.Contains(keyStr, "Mobile")
 				haveAddrTel := keyStr == "producer_address_tel" || keyStr == "customer_address_tel" || keyStr == "CH_PRODUCER_ADDRESS_TEL" || keyStr == "CH_CUSTOMER_ADDRESS_TEL"
+				haveRealName := keyStr == "realname" || keyStr == "real_name"
 
 				switch {
 				case haveCard:
@@ -950,7 +961,7 @@ func (l *loggingT) transform(v interface{}) interface{} {
 					} else {
 						ret[keyStr] = mapVal.Interface()
 					}
-				case haveIdCard:
+				case haveIDCard:
 					if l.filterIdentity {
 						ret[keyStr] = ShrineIdentity(mapVal.Interface().(string))
 					} else {
@@ -971,6 +982,12 @@ func (l *loggingT) transform(v interface{}) interface{} {
 				case haveAddrTel:
 					if l.filterPhone {
 						ret[keyStr] = ShrineCommaStr(mapVal.Interface().(string), shrinePhoneType)
+					} else {
+						ret[keyStr] = mapVal.Interface()
+					}
+				case haveRealName:
+					if l.filterRealName {
+						ret[keyStr] = ShrineRealName(mapVal.Interface().(string))
 					} else {
 						ret[keyStr] = mapVal.Interface()
 					}
@@ -1606,6 +1623,14 @@ func (l *loggingT) shrineRequestField(str string, sepOut string, sepInner string
 				if l.filterCard {
 					tmpStrs[1] = ShrineCardNo(tmpStrs[1])
 				}
+			case strings.Contains(tmpStrs[0], "realname"):
+				if l.filterCard {
+					tmpStrs[1] = ShrineRealName(tmpStrs[1])
+				}
+			case strings.Contains(tmpStrs[0], "real_name"):
+				if l.filterCard {
+					tmpStrs[1] = ShrineRealName(tmpStrs[1])
+				}
 			case strings.Contains(tmpStrs[0], "mobile"):
 				if l.filterPhone {
 					tmpStrs[1] = ShrinePhoneNumber(tmpStrs[1])
@@ -1701,6 +1726,30 @@ func ShrineEmail(email string) (shrineStr string) {
 	}
 
 	shrineStr = headStr + tailStr
+	return
+}
+
+// ShrineRealName mask real name
+func ShrineRealName(realName string) (out string) {
+	if len(realName) > 0 {
+		if realName[0] >= 0x61 && realName[0] <= 0x7a {
+
+			abroadRealname := strings.Split(realName, " ")
+			out = strings.Repeat("*", 2) + abroadRealname[len(abroadRealname)-1]
+		} else if realName[0] >= 0x41 && realName[0] <= 0x5a {
+
+			abroadRealname := strings.Split(realName, " ")
+			out = strings.Repeat("*", 2) + abroadRealname[len(abroadRealname)-1]
+		} else {
+
+			runes := []rune(realName)
+			if len(runes) < 2 {
+				out = realName
+			} else {
+				out = strings.Repeat("*", 2) + string(runes[len(runes)-1:])
+			}
+		}
+	}
 	return
 }
 

@@ -1641,11 +1641,11 @@ func (l *loggingT) shrineRequestField(str string, sepOut string, sepInner string
 					tmpStrs[1] = ShrineCardNo(tmpStrs[1])
 				}
 			case strings.Contains(tmpStrs[0], "realname"):
-				if l.filterCard {
+				if l.filterRealName {
 					tmpStrs[1] = ShrineRealName(tmpStrs[1])
 				}
 			case strings.Contains(tmpStrs[0], "real_name"):
-				if l.filterCard {
+				if l.filterRealName {
 					tmpStrs[1] = ShrineRealName(tmpStrs[1])
 				}
 			case strings.Contains(tmpStrs[0], "email"):

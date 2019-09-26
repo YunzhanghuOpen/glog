@@ -929,13 +929,13 @@ func (l *loggingT) transform(v interface{}) interface{} {
 
 						// handle type of map[string][]string, map["bank_code"] = ["612846129387468123", "62194621124345826"]
 						switch keyStr {
-						case "bank_code", "bank_card", "alipay_id", "card_no":
+						case "bank_code", "bank_card", "alipay_id", "card_no", "cardNo":
 							tmpSlice[i] = ShrineAlipayAccountNumber(innerVal.Interface().(string))
-						case "id_card":
+						case "id_card", "IDCard":
 							tmpSlice[i] = ShrineIdentity(innerVal.Interface().(string))
 						case "phone_no", "mobile":
 							tmpSlice[i] = ShrinePhoneNumber(innerVal.Interface().(string))
-						case "realname", "real_name":
+						case "realname", "real_name", "realName":
 							tmpSlice[i] = ShrineRealName(innerVal.Interface().(string))
 						case "email":
 							tmpSlice[i] = ShrineEmail(innerVal.Interface().(string))
@@ -954,15 +954,15 @@ func (l *loggingT) transform(v interface{}) interface{} {
 				}
 			case reflect.String:
 				// handle type of map[string]string, map["card_no"] = "612846129387468123" etc.
-				haveCard := keyStr == "card_no" || keyStr == "bank_card" || strings.Contains(keyStr, "CardNo") ||
+				haveCard := keyStr == "card_no" || keyStr == "bank_card" || keyStr == "cardNo" || strings.Contains(keyStr, "CardNo") ||
 					strings.Contains(keyStr, "bank_code") || strings.Contains(keyStr, "acct_id") || strings.Contains(keyStr, "bank_branch") ||
 					strings.Contains(keyStr, "ali_opponent_id") || strings.Contains(keyStr, "alipay_id") || strings.Contains(keyStr, "AlipayId")
 				haveBankInfo := keyStr == "customer_bank_info" || keyStr == "producer_bank_info" || keyStr == "CH_PRODUCER_BANK_INFO" || keyStr == "CH_CUSTOMER_BANK_INFO"
-				haveIDCard := keyStr == "id_card" || strings.Contains(keyStr, "IdCard")
+				haveIDCard := keyStr == "id_card" || strings.Contains(keyStr, "IdCard") || strings.Contains(keyStr, "IDCard")
 				havePhone := strings.Contains(keyStr, "phone") || strings.Contains(keyStr, "Phone") || strings.Contains(keyStr, "PHONE") ||
 					strings.Contains(keyStr, "mobile") || strings.Contains(keyStr, "Mobile")
 				haveAddrTel := keyStr == "producer_address_tel" || keyStr == "customer_address_tel" || keyStr == "CH_PRODUCER_ADDRESS_TEL" || keyStr == "CH_CUSTOMER_ADDRESS_TEL"
-				haveRealName := keyStr == "realname" || keyStr == "real_name"
+				haveRealName := keyStr == "realname" || keyStr == "real_name" || keyStr == "realName"
 				haveEmail := keyStr == "email" || keyStr == "Email" || strings.Contains(keyStr, "EMAIL")
 
 				switch {

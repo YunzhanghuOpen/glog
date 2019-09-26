@@ -783,19 +783,19 @@ func (l *loggingT) switchTag(val *reflect.Value, field *reflect.StructField, con
 			} else {
 				container[field.Name] = val.Interface()
 			}
-		case tag == "identity":
+		case tag == "identity" || name == "IDCard":
 			if ok && l.filterIdentity {
 				container[field.Name] = ShrineIdentity(str)
 			} else {
 				container[field.Name] = val.Interface()
 			}
-		case tag == "phone":
+		case tag == "phone" || name == "PhoneNo":
 			if ok && l.filterPhone {
 				container[field.Name] = ShrinePhoneNumber(str)
 			} else {
 				container[field.Name] = val.Interface()
 			}
-		case tag == "realname":
+		case tag == "realname" || name == "RealName":
 			if ok && l.filterRealName {
 				container[field.Name] = ShrineRealName(str)
 			} else {

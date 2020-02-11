@@ -432,7 +432,7 @@ func init() {
 	logging.stderrThreshold = errorLog
 
 	// Default filter card/salary/identity
-	logging.SetFilter(true, true, true, true, true)
+	logging.SetFilter(true, true, true, true, true, true, true)
 
 	logging.setVState(0, nil, false)
 	go logging.flushDaemon()
@@ -503,6 +503,8 @@ type loggingT struct {
 	filterPhone    bool
 	filterRealName bool
 	filterEmail    bool
+	filterPwd      bool
+	filterCompany  bool
 	// truncate long log message. default -1, less than headerLength(64) will not truncate
 	maxLogMessageLen int
 }
@@ -516,12 +518,14 @@ type buffer struct {
 
 var logging loggingT
 
-func (l *loggingT) SetFilter(card, identity, phone, realName, email bool) {
+func (l *loggingT) SetFilter(card, identity, phone, realName, email, pwd, company bool) {
 	l.filterCard = card
 	l.filterIdentity = identity
 	l.filterPhone = phone
 	l.filterRealName = realName
 	l.filterEmail = email
+	l.filterPwd = pwd
+	l.filterCompany = company
 }
 
 func (l *loggingT) SetCardFilter(card bool) {
@@ -819,6 +823,18 @@ func (l *loggingT) switchTag(val *reflect.Value, field *reflect.StructField, con
 			} else {
 				container[field.Name] = val.Interface()
 			}
+		case tag == "pwd":
+			if ok && l.filterPwd {
+				container[field.Name] = ShrinePwdStr()
+			} else {
+				container[field.Name] = val.Interface()
+			}
+		case tag == "company":
+			if ok && l.filterCompany {
+				container[field.Name] = ShrineCompanyName(str)
+			} else {
+				container[field.Name] = val.Interface()
+			}
 		default:
 			container[field.Name] = val.Interface()
 		}
@@ -939,6 +955,10 @@ func (l *loggingT) transform(v interface{}) interface{} {
 							tmpSlice[i] = ShrineRealName(innerVal.Interface().(string))
 						case "email":
 							tmpSlice[i] = ShrineEmail(innerVal.Interface().(string))
+						case "password", "pwd":
+							tmpSlice[i] = ShrinePwdStr()
+						case "dealer_name", "dealer_product_name", "broker_product_name", "product_name", "broker_name", "enterprise_name", "company":
+							tmpSlice[i] = ShrineCompanyName(innerVal.Interface().(string))
 						default:
 							tmpSlice[i] = innerVal.Interface()
 						}
@@ -964,6 +984,8 @@ func (l *loggingT) transform(v interface{}) interface{} {
 				haveAddrTel := keyStr == "producer_address_tel" || keyStr == "customer_address_tel" || keyStr == "CH_PRODUCER_ADDRESS_TEL" || keyStr == "CH_CUSTOMER_ADDRESS_TEL"
 				haveRealName := keyStr == "realname" || keyStr == "real_name" || keyStr == "realName"
 				haveEmail := keyStr == "email" || keyStr == "Email" || strings.Contains(keyStr, "EMAIL")
+				havePwd := strings.Contains(strings.ToUpper(keyStr), "PWD") || strings.Contains(strings.ToUpper(keyStr), "PASSWORD")
+				haveCompany := strings.Contains(strings.ToUpper(keyStr), "PRODUCT_NAME") || strings.Contains(strings.ToUpper(keyStr), "BROKER_NAME") || strings.Contains(strings.ToUpper(keyStr), "DEALER_NAME") || strings.Contains(strings.ToUpper(keyStr), "ENTERPRISE_NAME")
 
 				switch {
 				case haveCard:
@@ -1005,6 +1027,18 @@ func (l *loggingT) transform(v interface{}) interface{} {
 				case haveEmail:
 					if l.filterEmail {
 						ret[keyStr] = ShrineEmail(mapVal.Interface().(string))
+					} else {
+						ret[keyStr] = mapVal.Interface()
+					}
+				case havePwd:
+					if l.filterPwd {
+						ret[keyStr] = ShrinePwdStr()
+					} else {
+						ret[keyStr] = mapVal.Interface()
+					}
+				case haveCompany:
+					if l.filterCompany {
+						ret[keyStr] = ShrineCompanyName(mapVal.Interface().(string))
 					} else {
 						ret[keyStr] = mapVal.Interface()
 					}
@@ -1896,4 +1930,25 @@ func getStartOfNextHour(t time.Time) time.Time {
 func getStartOfNextMinute(t time.Time) time.Time {
 	t = t.Add(time.Minute)
 	return time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), 0, 0, t.Location())
+}
+
+// ShrinePwdStr password mask
+func ShrinePwdStr() string {
+	return "******"
+}
+
+// ShrineCompanyName company name mask
+func ShrineCompanyName(str string) string {
+	if len(str) == 0 {
+		return ""
+	}
+	// Chinese character length of the company
+	com := ([]rune)(str)
+	comLen := len(com)
+	// Less than 3 characters directly return str
+	if comLen <= 3 {
+		return str
+	}
+	// Returns the first character + "****" + the last two characters
+	return string(com[0]) + "****" + string(com[comLen-2:])
 }

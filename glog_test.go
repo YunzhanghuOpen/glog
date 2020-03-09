@@ -565,3 +565,182 @@ func TestTruncate(t *testing.T) {
 	a.Contains(message, "testmaxlogmessagelen1234567890测试中文哈哈哈哈哈哈哈哈哈哈哈")
 	a.False(strings.HasSuffix(message, "..."))
 }
+
+type T struct {
+	SliceIfWithRealNameTag []interface{} `filter:"realname"`
+	SliceIfWithoutRealNameTag []interface{}
+
+	SliceStrWithRealNameTag []string `filter:"realname"`
+	SliceStrWithoutRealNameTag []string
+}
+
+func Test_Once(t *testing.T)  {
+
+	val1 := T{
+		SliceIfWithRealNameTag: []interface{}{
+			"云账户技术（天津）有限公司",
+			"云账户技术（天津）有限公司北京分公司",
+		},
+		SliceIfWithoutRealNameTag: []interface{}{
+			"云账户技术（天津）有限公司",
+			"云账户技术（天津）有限公司北京分公司",
+		},
+		SliceStrWithRealNameTag: []string{
+			"云账户技术（天津）有限公司",
+			"云账户技术（天津）有限公司北京分公司",
+		},
+		SliceStrWithoutRealNameTag: []string{
+			"云账户技术（天津）有限公司",
+			"云账户技术（天津）有限公司北京分公司",
+		},
+	}
+	Infof("normal: %+v", val1)
+
+	val2 := T{
+		SliceIfWithRealNameTag: []interface{}{
+			1,
+			"云账户技术（天津）有限公司北京分公司",
+		},
+		SliceIfWithoutRealNameTag: []interface{}{
+			2,
+			"云账户技术（天津）有限公司北京分公司",
+		},
+		SliceStrWithRealNameTag: []string{
+			"云账户技术（天津）有限公司",
+			"云账户技术（天津）有限公司北京分公司",
+		},
+		SliceStrWithoutRealNameTag: []string{
+			"云账户技术（天津）有限公司",
+			"云账户技术（天津）有限公司北京分公司",
+		},
+	}
+	Infof("mix: %+v", val2)
+
+	type T1 struct {
+		T
+	}
+	val1_1 := T1{
+		T: T{
+			SliceIfWithRealNameTag: []interface{}{
+				"云账户技术（天津）有限公司",
+				"云账户技术（天津）有限公司北京分公司",
+			},
+			SliceIfWithoutRealNameTag: []interface{}{
+				"云账户技术（天津）有限公司",
+				"云账户技术（天津）有限公司北京分公司",
+			},
+			SliceStrWithRealNameTag: []string{
+				"云账户技术（天津）有限公司",
+				"云账户技术（天津）有限公司北京分公司",
+			},
+			SliceStrWithoutRealNameTag: []string{
+				"云账户技术（天津）有限公司",
+				"云账户技术（天津）有限公司北京分公司",
+			},
+		},
+	}
+	Infof("struct inner normal: %+v", val1_1)
+	val2_1 := T1{
+		T: T{
+			SliceIfWithRealNameTag: []interface{}{
+				1,
+				"云账户技术（天津）有限公司北京分公司",
+			},
+			SliceIfWithoutRealNameTag: []interface{}{
+				2,
+				"云账户技术（天津）有限公司北京分公司",
+			},
+			SliceStrWithRealNameTag: []string{
+				"云账户技术（天津）有限公司",
+				"云账户技术（天津）有限公司北京分公司",
+			},
+			SliceStrWithoutRealNameTag: []string{
+				"云账户技术（天津）有限公司",
+				"云账户技术（天津）有限公司北京分公司",
+			},
+		},
+	}
+	Infof("struct inner mix: %+v", val2_1)
+
+	val3 := []T{
+		T{
+			SliceIfWithRealNameTag: []interface{}{
+				"云账户技术（天津）有限公司",
+				"云账户技术（天津）有限公司北京分公司",
+			},
+			SliceIfWithoutRealNameTag: []interface{}{
+				"云账户技术（天津）有限公司",
+				"云账户技术（天津）有限公司北京分公司",
+			},
+			SliceStrWithRealNameTag: []string{
+				"云账户技术（天津）有限公司",
+				"云账户技术（天津）有限公司北京分公司",
+			},
+			SliceStrWithoutRealNameTag: []string{
+				"云账户技术（天津）有限公司",
+				"云账户技术（天津）有限公司北京分公司",
+			},
+		},
+		T{
+			SliceIfWithRealNameTag: []interface{}{
+				1,
+				"云账户技术（天津）有限公司北京分公司",
+			},
+			SliceIfWithoutRealNameTag: []interface{}{
+				2,
+				"云账户技术（天津）有限公司北京分公司",
+			},
+			SliceStrWithRealNameTag: []string{
+				"云账户技术（天津）有限公司",
+				"云账户技术（天津）有限公司北京分公司",
+			},
+			SliceStrWithoutRealNameTag: []string{
+				"云账户技术（天津）有限公司",
+				"云账户技术（天津）有限公司北京分公司",
+			},
+		},
+	}
+	Infof("slice struct: %+v", val3)
+
+	val4 := map[string]T{
+		"val4_1": 		T{
+			SliceIfWithRealNameTag: []interface{}{
+				"云账户技术（天津）有限公司",
+				"云账户技术（天津）有限公司北京分公司",
+			},
+			SliceIfWithoutRealNameTag: []interface{}{
+				"云账户技术（天津）有限公司",
+				"云账户技术（天津）有限公司北京分公司",
+			},
+			SliceStrWithRealNameTag: []string{
+				"云账户技术（天津）有限公司",
+				"云账户技术（天津）有限公司北京分公司",
+			},
+			SliceStrWithoutRealNameTag: []string{
+				"云账户技术（天津）有限公司",
+				"云账户技术（天津）有限公司北京分公司",
+			},
+		},
+		"val4_2": 		T{
+			SliceIfWithRealNameTag: []interface{}{
+				1,
+				"云账户技术（天津）有限公司北京分公司",
+			},
+			SliceIfWithoutRealNameTag: []interface{}{
+				2,
+				"云账户技术（天津）有限公司北京分公司",
+			},
+			SliceStrWithRealNameTag: []string{
+				"云账户技术（天津）有限公司",
+				"云账户技术（天津）有限公司北京分公司",
+			},
+			SliceStrWithoutRealNameTag: []string{
+				"云账户技术（天津）有限公司",
+				"云账户技术（天津）有限公司北京分公司",
+			},
+		},
+	}
+	Infof("map struct: %+v", val4)
+
+	Flush()
+}

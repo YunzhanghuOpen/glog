@@ -841,6 +841,35 @@ func (l *loggingT) switchTag(val *reflect.Value, field *reflect.StructField, con
 	}
 }
 
+func (l *loggingT) switchTagSlice(val *reflect.Value, field *reflect.StructField, container *[]interface{}, index int) {
+	if val.CanInterface() && val.IsValid() {
+		tag := field.Tag.Get("filter")
+		name := field.Name
+		str, _ := val.Interface().(string)
+		switch {
+		case tag == "card":
+			*container = append(*container, ShrineAlipayAccountNumber(str))
+		case tag == "identity" || name == "IDCard":
+			*container = append(*container, ShrineIdentity(str))
+		case tag == "phone" || name == "PhoneNo":
+			*container = append(*container, ShrinePhoneNumber(str))
+		case tag == "realname" || name == "RealName":
+			*container = append(*container, ShrineRealName(str))
+		case tag == "email":
+			*container = append(*container, ShrineEmail(str))
+		case name == "RawQuery", name == "RequestURI", name == "Referrer":
+			*container = append(*container, val.Interface())
+		case name == "BankNameNumber":
+			*container = append(*container, ShrineCommaStr(str, shrineCardType))
+		case tag == "pwd":
+			*container = append(*container, ShrinePwdStr())
+		case tag == "company":
+			*container = append(*container, ShrineCompanyName(str))
+		default:
+			*container = append(*container, val.Interface())
+		}
+	}
+}
 // transform - Filtering the bank card number, the id card number
 // and the mobile phone number through the reflection structure tag
 // and slice key
@@ -882,8 +911,39 @@ func (l *loggingT) transform(v interface{}) interface{} {
 			}
 
 			switch outerVal.Kind() {
-			case reflect.Map, reflect.Slice, reflect.Array, reflect.Struct, reflect.Interface:
+			case reflect.Map, reflect.Array, reflect.Struct, reflect.Interface:
 				ret[field.Name] = l.transform(outerVal.Interface())
+			case reflect.Slice:
+				strSliceFlag := false
+				tmpSlice := make([]interface{}, 0)
+
+				for idx := 0; idx < outerVal.Len(); idx++ {
+					innerVal := reflect.Indirect(outerVal.Index(idx))
+					if !innerVal.IsValid() || !innerVal.CanInterface() {
+						continue
+					}
+
+					if innerVal.Kind() == reflect.Interface {
+						innerVal = reflect.Indirect(reflect.ValueOf(innerVal.Interface()))
+					}
+
+					if !innerVal.IsValid() || !innerVal.CanInterface() {
+						continue
+					}
+
+					switch innerVal.Kind() {
+					case reflect.String:
+						l.switchTagSlice(&innerVal, &field, &tmpSlice, idx)
+					default:
+						strSliceFlag = true
+						break
+					}
+				}
+				if strSliceFlag {
+					ret[field.Name] = l.transform(outerVal.Interface())
+				} else {
+					ret[field.Name] = tmpSlice
+				}
 			case reflect.String:
 				l.switchTag(&outerVal, &field, ret, i)
 			default:

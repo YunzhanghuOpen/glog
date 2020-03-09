@@ -598,11 +598,17 @@ func Test_Once(t *testing.T)  {
 
 	val2 := T{
 		SliceIfWithRealNameTag: []interface{}{
-			1,
-			"云账户技术（天津）有限公司北京分公司",
+			map[string]string{
+				"1": "天津",
+			},
+			map[string]string{
+				"2": "北京",
+			},
 		},
 		SliceIfWithoutRealNameTag: []interface{}{
-			2,
+			[]string{
+				"2", "北京",
+			},
 			"云账户技术（天津）有限公司北京分公司",
 		},
 		SliceStrWithRealNameTag: []string{
@@ -618,8 +624,10 @@ func Test_Once(t *testing.T)  {
 
 	type T1 struct {
 		T
+		SliceStruWithRealNameTag []T `filter:"realname"`
+		MapStruWithRealNameTag map[string]T `filter:"realname"`
 	}
-	val1_1 := T1{
+	val3 := T1{
 		T: T{
 			SliceIfWithRealNameTag: []interface{}{
 				"云账户技术（天津）有限公司",
@@ -638,109 +646,84 @@ func Test_Once(t *testing.T)  {
 				"云账户技术（天津）有限公司北京分公司",
 			},
 		},
-	}
-	Infof("struct inner normal: %+v", val1_1)
-	val2_1 := T1{
-		T: T{
-			SliceIfWithRealNameTag: []interface{}{
-				1,
-				"云账户技术（天津）有限公司北京分公司",
+		SliceStruWithRealNameTag: []T{
+			T{
+				SliceIfWithRealNameTag: []interface{}{
+					"有限公司",
+					"有限公司北京分公司",
+				},
+				SliceIfWithoutRealNameTag: []interface{}{
+					"有限公司",
+					"有限公司北京分公司",
+				},
+				SliceStrWithRealNameTag: []string{
+					"有限公司",
+					"有限公司北京分公司",
+				},
+				SliceStrWithoutRealNameTag: []string{
+					"有限公司",
+					"有限公司北京分公司",
+				},
 			},
-			SliceIfWithoutRealNameTag: []interface{}{
-				2,
-				"云账户技术（天津）有限公司北京分公司",
+			T{
+				SliceIfWithRealNameTag: []interface{}{
+					1,
+					"有限公司北京分公司",
+				},
+				SliceIfWithoutRealNameTag: []interface{}{
+					2,
+					"有限公司北京分公司",
+				},
+				SliceStrWithRealNameTag: []string{
+					"有限公司",
+					"有限公司北京分公司",
+				},
+				SliceStrWithoutRealNameTag: []string{
+					"有限公司",
+					"有限公司北京分公司",
+				},
 			},
-			SliceStrWithRealNameTag: []string{
-				"云账户技术（天津）有限公司",
-				"云账户技术（天津）有限公司北京分公司",
+		},
+		MapStruWithRealNameTag: map[string]T{
+			"val4_1": 		T{
+				SliceIfWithRealNameTag: []interface{}{
+					"云账户技术（天津）有限公司",
+					"云账户技术（天津）有限公司北京分公司",
+				},
+				SliceIfWithoutRealNameTag: []interface{}{
+					"云账户技术（天津）有限公司",
+					"云账户技术（天津）有限公司北京分公司",
+				},
+				SliceStrWithRealNameTag: []string{
+					"云账户技术（天津）有限公司",
+					"云账户技术（天津）有限公司北京分公司",
+				},
+				SliceStrWithoutRealNameTag: []string{
+					"云账户技术（天津）有限公司",
+					"云账户技术（天津）有限公司北京分公司",
+				},
 			},
-			SliceStrWithoutRealNameTag: []string{
-				"云账户技术（天津）有限公司",
-				"云账户技术（天津）有限公司北京分公司",
+			"val4_2": 		T{
+				SliceIfWithRealNameTag: []interface{}{
+					1,
+					"云账户技术（天津）有限公司北京分公司",
+				},
+				SliceIfWithoutRealNameTag: []interface{}{
+					2,
+					"云账户技术（天津）有限公司北京分公司",
+				},
+				SliceStrWithRealNameTag: []string{
+					"云账户技术（天津）有限公司",
+					"云账户技术（天津）有限公司北京分公司",
+				},
+				SliceStrWithoutRealNameTag: []string{
+					"云账户技术（天津）有限公司",
+					"云账户技术（天津）有限公司北京分公司",
+				},
 			},
 		},
 	}
-	Infof("struct inner mix: %+v", val2_1)
-
-	val3 := []T{
-		T{
-			SliceIfWithRealNameTag: []interface{}{
-				"云账户技术（天津）有限公司",
-				"云账户技术（天津）有限公司北京分公司",
-			},
-			SliceIfWithoutRealNameTag: []interface{}{
-				"云账户技术（天津）有限公司",
-				"云账户技术（天津）有限公司北京分公司",
-			},
-			SliceStrWithRealNameTag: []string{
-				"云账户技术（天津）有限公司",
-				"云账户技术（天津）有限公司北京分公司",
-			},
-			SliceStrWithoutRealNameTag: []string{
-				"云账户技术（天津）有限公司",
-				"云账户技术（天津）有限公司北京分公司",
-			},
-		},
-		T{
-			SliceIfWithRealNameTag: []interface{}{
-				1,
-				"云账户技术（天津）有限公司北京分公司",
-			},
-			SliceIfWithoutRealNameTag: []interface{}{
-				2,
-				"云账户技术（天津）有限公司北京分公司",
-			},
-			SliceStrWithRealNameTag: []string{
-				"云账户技术（天津）有限公司",
-				"云账户技术（天津）有限公司北京分公司",
-			},
-			SliceStrWithoutRealNameTag: []string{
-				"云账户技术（天津）有限公司",
-				"云账户技术（天津）有限公司北京分公司",
-			},
-		},
-	}
-	Infof("slice struct: %+v", val3)
-
-	val4 := map[string]T{
-		"val4_1": 		T{
-			SliceIfWithRealNameTag: []interface{}{
-				"云账户技术（天津）有限公司",
-				"云账户技术（天津）有限公司北京分公司",
-			},
-			SliceIfWithoutRealNameTag: []interface{}{
-				"云账户技术（天津）有限公司",
-				"云账户技术（天津）有限公司北京分公司",
-			},
-			SliceStrWithRealNameTag: []string{
-				"云账户技术（天津）有限公司",
-				"云账户技术（天津）有限公司北京分公司",
-			},
-			SliceStrWithoutRealNameTag: []string{
-				"云账户技术（天津）有限公司",
-				"云账户技术（天津）有限公司北京分公司",
-			},
-		},
-		"val4_2": 		T{
-			SliceIfWithRealNameTag: []interface{}{
-				1,
-				"云账户技术（天津）有限公司北京分公司",
-			},
-			SliceIfWithoutRealNameTag: []interface{}{
-				2,
-				"云账户技术（天津）有限公司北京分公司",
-			},
-			SliceStrWithRealNameTag: []string{
-				"云账户技术（天津）有限公司",
-				"云账户技术（天津）有限公司北京分公司",
-			},
-			SliceStrWithoutRealNameTag: []string{
-				"云账户技术（天津）有限公司",
-				"云账户技术（天津）有限公司北京分公司",
-			},
-		},
-	}
-	Infof("map struct: %+v", val4)
+	Infof("struct inner: %+v", val3)
 
 	Flush()
 }

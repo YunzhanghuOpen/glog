@@ -594,18 +594,14 @@ func TestSSliceEncrypt1(t *testing.T)  {
 		},
 	}
 	Info(val1)
-	if !contains(infoLog, ShrineRealName("TI（加密）有限公司"), t) {
-		t.Errorf("Info has wrong character: %q", contents(infoLog))
-	}
-	if !contains(infoLog, "TI（未加密）有限公司", t) {
-		t.Errorf("Info has wrong character: %q", contents(infoLog))
-	}
-	if !contains(infoLog, ShrineRealName("TS（加密）有限公司"), t) {
-		t.Errorf("Info has wrong character: %q", contents(infoLog))
-	}
-	if !contains(infoLog, "TS（未加密）有限公司", t) {
-		t.Errorf("Info has wrong character: %q", contents(infoLog))
-	}
+
+	a := assert.New(t)
+	message := contents(infoLog)
+
+	a.Contains(message, ShrineRealName("TI（加密）有限公司"))
+	a.Contains(message, "TI（未加密）有限公司")
+	a.Contains(message, ShrineRealName("TS（加密）有限公司"))
+	a.Contains(message, "TS（未加密）有限公司")
 }
 func TestSSliceEncrypt2(t *testing.T) {
 	setFlags()
@@ -632,22 +628,15 @@ func TestSSliceEncrypt2(t *testing.T) {
 		},
 	}
 	Info(val2)
-	if !contains(infoLog, "TIM（未加密）有限公司", t) {
-		t.Errorf("Info has wrong character: %q", contents(infoLog))
-	}
-	if !contains(infoLog, "TISlice（未加密）有限公司", t) {
-		t.Errorf("Info has wrong character: %q", contents(infoLog))
-	}
-	if !contains(infoLog, "TIString（未加密）有限公司", t) {
-		t.Errorf("Info has wrong character: %q", contents(infoLog))
-	}
-	if !contains(infoLog, ShrineRealName("TS（加密）有限公司"), t) {
-		t.Errorf("Info has wrong character: %q", contents(infoLog))
-	}
-	if !contains(infoLog, "TS（未加密）有限公司", t) {
-		t.Errorf("Info has wrong character: %q", contents(infoLog))
-	}
 
+	a := assert.New(t)
+	message := contents(infoLog)
+
+	a.Contains(message, "TIM（未加密）有限公司")
+	a.Contains(message, "TISlice（未加密）有限公司")
+	a.Contains(message, "TIString（未加密）有限公司")
+	a.Contains(message, ShrineRealName("TS（加密）有限公司"))
+	a.Contains(message, "TS（未加密）有限公司")
 }
 func TestSSliceEncrypt3(t *testing.T)  {
 	setFlags()
@@ -734,61 +723,29 @@ func TestSSliceEncrypt3(t *testing.T)  {
 		},
 	}
 	Info(val3)
-	if !contains(infoLog, ShrineRealName("TI（加密）有限公司"), t) {
-		t.Errorf("Info has wrong character: %q", contents(infoLog))
-	}
-	if !contains(infoLog, "TI（未加密）有限公司", t) {
-		t.Errorf("Info has wrong character: %q", contents(infoLog))
-	}
-	if !contains(infoLog, ShrineRealName("TS（加密）有限公司"), t) {
-		t.Errorf("Info has wrong character: %q", contents(infoLog))
-	}
-	if !contains(infoLog, "TS（未加密）有限公司", t) {
-		t.Errorf("Info has wrong character: %q", contents(infoLog))
-	}
 
-	if !contains(infoLog, ShrineRealName("STI Normal（加密）有限公司"), t) {
-		t.Errorf("Info has wrong character: %q", contents(infoLog))
-	}
-	if !contains(infoLog, "STI Normal（未加密）有限公司", t) {
-		t.Errorf("Info has wrong character: %q", contents(infoLog))
-	}
-	if !contains(infoLog, ShrineRealName("STS Normal（加密）有限公司"), t) {
-		t.Errorf("Info has wrong character: %q", contents(infoLog))
-	}
-	if !contains(infoLog, "STS Normal（未加密）有限公司", t) {
-		t.Errorf("Info has wrong character: %q", contents(infoLog))
-	}
+	a := assert.New(t)
+	message := contents(infoLog)
 
-	if !contains(infoLog, "STI MIX（未加密1）有限公司", t) {
-		t.Errorf("Info has wrong character: %q", contents(infoLog))
-	}
-	if !contains(infoLog, "STI MIX（未加密2）有限公司", t) {
-		t.Errorf("Info has wrong character: %q", contents(infoLog))
-	}
-	if !contains(infoLog, ShrineRealName("STS MIX（加密）有限公司"), t) {
-		t.Errorf("Info has wrong character: %q", contents(infoLog))
-	}
-	if !contains(infoLog, "STS MIX（未加密）有限公司", t) {
-		t.Errorf("Info has wrong character: %q", contents(infoLog))
-	}
+	a.Contains(message, ShrineRealName("TI（加密）有限公司"))
+	a.Contains(message, "TI（未加密）有限公司")
+	a.Contains(message, ShrineRealName("TS（加密）有限公司"))
+	a.Contains(message, "TS（未加密）有限公司")
 
-	if !contains(infoLog, ShrineRealName("MTI Normal（加密）有限公司"), t) {
-		t.Errorf("Info has wrong character: %q", contents(infoLog))
-	}
-	if !contains(infoLog, "MTI Normal（未加密）有限公司", t) {
-		t.Errorf("Info has wrong character: %q", contents(infoLog))
-	}
-	if !contains(infoLog, ShrineRealName("MTS Normal（加密）有限公司"), t) {
-		t.Errorf("Info has wrong character: %q", contents(infoLog))
-	}
-	if !contains(infoLog, "MTS Normal（未加密）有限公司", t) {
-		t.Errorf("Info has wrong character: %q", contents(infoLog))
-	}
-	if !contains(infoLog, "MTI MIX（未加密1）有限公司", t) {
-		t.Errorf("Info has wrong character: %q", contents(infoLog))
-	}
-	if !contains(infoLog, "MTI MIX（未加密2）有限公司", t) {
-		t.Errorf("Info has wrong character: %q", contents(infoLog))
-	}
+	a.Contains(message, ShrineRealName("STI Normal（加密）有限公司"))
+	a.Contains(message, "STI Normal（未加密）有限公司")
+	a.Contains(message, ShrineRealName("STS Normal（加密）有限公司"))
+	a.Contains(message, "STS Normal（未加密）有限公司")
+
+	a.Contains(message, "STI MIX（未加密1）有限公司")
+	a.Contains(message, "STI MIX（未加密2）有限公司")
+	a.Contains(message, ShrineRealName("STS MIX（加密）有限公司"))
+	a.Contains(message, "STS MIX（未加密）有限公司")
+
+	a.Contains(message, ShrineRealName("MTI Normal（加密）有限公司"))
+	a.Contains(message, "MTI Normal（未加密）有限公司")
+	a.Contains(message, ShrineRealName("MTS Normal（加密）有限公司"))
+	a.Contains(message, "MTS Normal（未加密）有限公司")
+	a.Contains(message, "MTI MIX（未加密1）有限公司")
+	a.Contains(message, "MTI MIX（未加密2）有限公司")
 }

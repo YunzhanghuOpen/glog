@@ -574,54 +574,86 @@ type T struct {
 	SliceStrWithoutRealNameTag []string
 }
 
-func Test_Once(t *testing.T)  {
+func TestSSliceEncrypt1(t *testing.T)  {
+	setFlags()
+	defer logging.swap(logging.newBuffers())
 
+	//[]interface{} 元素是String
 	val1 := T{
 		SliceIfWithRealNameTag: []interface{}{
-			"云账户技术（天津）有限公司",
-			"云账户技术（天津）有限公司北京分公司",
+			"TI（加密）有限公司",
 		},
 		SliceIfWithoutRealNameTag: []interface{}{
-			"云账户技术（天津）有限公司",
-			"云账户技术（天津）有限公司北京分公司",
+			"TI（未加密）有限公司",
 		},
 		SliceStrWithRealNameTag: []string{
-			"云账户技术（天津）有限公司",
-			"云账户技术（天津）有限公司北京分公司",
+			"TS（加密）有限公司",
 		},
 		SliceStrWithoutRealNameTag: []string{
-			"云账户技术（天津）有限公司",
-			"云账户技术（天津）有限公司北京分公司",
+			"TS（未加密）有限公司",
 		},
 	}
-	Infof("normal: %+v", val1)
+	Info(val1)
+	if !contains(infoLog, ShrineRealName("TI（加密）有限公司"), t) {
+		t.Errorf("Info has wrong character: %q", contents(infoLog))
+	}
+	if !contains(infoLog, "TI（未加密）有限公司", t) {
+		t.Errorf("Info has wrong character: %q", contents(infoLog))
+	}
+	if !contains(infoLog, ShrineRealName("TS（加密）有限公司"), t) {
+		t.Errorf("Info has wrong character: %q", contents(infoLog))
+	}
+	if !contains(infoLog, "TS（未加密）有限公司", t) {
+		t.Errorf("Info has wrong character: %q", contents(infoLog))
+	}
+}
+func TestSSliceEncrypt2(t *testing.T) {
+	setFlags()
+	defer logging.swap(logging.newBuffers())
 
+	//[]interface{} 元素非String
 	val2 := T{
 		SliceIfWithRealNameTag: []interface{}{
 			map[string]string{
-				"1": "天津",
-			},
-			map[string]string{
-				"2": "北京",
+				"1": "TIM（未加密）有限公司",
 			},
 		},
 		SliceIfWithoutRealNameTag: []interface{}{
 			[]string{
-				"2", "北京",
+				"2", "TISlice（未加密）有限公司",
 			},
-			"云账户技术（天津）有限公司北京分公司",
+			"TIString（未加密）有限公司",
 		},
 		SliceStrWithRealNameTag: []string{
-			"云账户技术（天津）有限公司",
-			"云账户技术（天津）有限公司北京分公司",
+			"TS（加密）有限公司",
 		},
 		SliceStrWithoutRealNameTag: []string{
-			"云账户技术（天津）有限公司",
-			"云账户技术（天津）有限公司北京分公司",
+			"TS（未加密）有限公司",
 		},
 	}
-	Infof("mix: %+v", val2)
+	Info(val2)
+	if !contains(infoLog, "TIM（未加密）有限公司", t) {
+		t.Errorf("Info has wrong character: %q", contents(infoLog))
+	}
+	if !contains(infoLog, "TISlice（未加密）有限公司", t) {
+		t.Errorf("Info has wrong character: %q", contents(infoLog))
+	}
+	if !contains(infoLog, "TIString（未加密）有限公司", t) {
+		t.Errorf("Info has wrong character: %q", contents(infoLog))
+	}
+	if !contains(infoLog, ShrineRealName("TS（加密）有限公司"), t) {
+		t.Errorf("Info has wrong character: %q", contents(infoLog))
+	}
+	if !contains(infoLog, "TS（未加密）有限公司", t) {
+		t.Errorf("Info has wrong character: %q", contents(infoLog))
+	}
 
+}
+func TestSSliceEncrypt3(t *testing.T)  {
+	setFlags()
+	defer logging.swap(logging.newBuffers())
+
+	//嵌套结构体
 	type T1 struct {
 		T
 		SliceStruWithRealNameTag []T `filter:"realname"`
@@ -630,100 +662,133 @@ func Test_Once(t *testing.T)  {
 	val3 := T1{
 		T: T{
 			SliceIfWithRealNameTag: []interface{}{
-				"云账户技术（天津）有限公司",
-				"云账户技术（天津）有限公司北京分公司",
+				"TI（加密）有限公司",
 			},
 			SliceIfWithoutRealNameTag: []interface{}{
-				"云账户技术（天津）有限公司",
-				"云账户技术（天津）有限公司北京分公司",
+				"TI（未加密）有限公司",
 			},
 			SliceStrWithRealNameTag: []string{
-				"云账户技术（天津）有限公司",
-				"云账户技术（天津）有限公司北京分公司",
+				"TS（加密）有限公司",
 			},
 			SliceStrWithoutRealNameTag: []string{
-				"云账户技术（天津）有限公司",
-				"云账户技术（天津）有限公司北京分公司",
+				"TS（未加密）有限公司",
 			},
 		},
 		SliceStruWithRealNameTag: []T{
 			T{
 				SliceIfWithRealNameTag: []interface{}{
-					"有限公司",
-					"有限公司北京分公司",
+					"STI Normal（加密）有限公司",
 				},
 				SliceIfWithoutRealNameTag: []interface{}{
-					"有限公司",
-					"有限公司北京分公司",
+					"STI Normal（未加密）有限公司",
 				},
 				SliceStrWithRealNameTag: []string{
-					"有限公司",
-					"有限公司北京分公司",
+					"STS Normal（加密）有限公司",
 				},
 				SliceStrWithoutRealNameTag: []string{
-					"有限公司",
-					"有限公司北京分公司",
+					"STS Normal（未加密）有限公司",
 				},
 			},
 			T{
 				SliceIfWithRealNameTag: []interface{}{
 					1,
-					"有限公司北京分公司",
+					"STI MIX（未加密1）有限公司",
 				},
 				SliceIfWithoutRealNameTag: []interface{}{
 					2,
-					"有限公司北京分公司",
+					"STI MIX（未加密2）有限公司",
 				},
 				SliceStrWithRealNameTag: []string{
-					"有限公司",
-					"有限公司北京分公司",
+					"STS MIX（加密）有限公司",
 				},
 				SliceStrWithoutRealNameTag: []string{
-					"有限公司",
-					"有限公司北京分公司",
+					"STS MIX（未加密）有限公司",
 				},
 			},
 		},
 		MapStruWithRealNameTag: map[string]T{
 			"val4_1": 		T{
 				SliceIfWithRealNameTag: []interface{}{
-					"云账户技术（天津）有限公司",
-					"云账户技术（天津）有限公司北京分公司",
+					"MTI Normal（加密）有限公司",
 				},
 				SliceIfWithoutRealNameTag: []interface{}{
-					"云账户技术（天津）有限公司",
-					"云账户技术（天津）有限公司北京分公司",
+					"MTI Normal（未加密）有限公司",
 				},
 				SliceStrWithRealNameTag: []string{
-					"云账户技术（天津）有限公司",
-					"云账户技术（天津）有限公司北京分公司",
+					"MTS Normal（加密）有限公司",
 				},
 				SliceStrWithoutRealNameTag: []string{
-					"云账户技术（天津）有限公司",
-					"云账户技术（天津）有限公司北京分公司",
+					"MTS Normal（未加密）有限公司",
 				},
 			},
 			"val4_2": 		T{
 				SliceIfWithRealNameTag: []interface{}{
 					1,
-					"云账户技术（天津）有限公司北京分公司",
+					"MTI MIX（未加密1）有限公司",
 				},
 				SliceIfWithoutRealNameTag: []interface{}{
 					2,
-					"云账户技术（天津）有限公司北京分公司",
-				},
-				SliceStrWithRealNameTag: []string{
-					"云账户技术（天津）有限公司",
-					"云账户技术（天津）有限公司北京分公司",
-				},
-				SliceStrWithoutRealNameTag: []string{
-					"云账户技术（天津）有限公司",
-					"云账户技术（天津）有限公司北京分公司",
+					"MTI MIX（未加密2）有限公司",
 				},
 			},
 		},
 	}
-	Infof("struct inner: %+v", val3)
+	Info(val3)
+	if !contains(infoLog, ShrineRealName("TI（加密）有限公司"), t) {
+		t.Errorf("Info has wrong character: %q", contents(infoLog))
+	}
+	if !contains(infoLog, "TI（未加密）有限公司", t) {
+		t.Errorf("Info has wrong character: %q", contents(infoLog))
+	}
+	if !contains(infoLog, ShrineRealName("TS（加密）有限公司"), t) {
+		t.Errorf("Info has wrong character: %q", contents(infoLog))
+	}
+	if !contains(infoLog, "TS（未加密）有限公司", t) {
+		t.Errorf("Info has wrong character: %q", contents(infoLog))
+	}
 
-	Flush()
+	if !contains(infoLog, ShrineRealName("STI Normal（加密）有限公司"), t) {
+		t.Errorf("Info has wrong character: %q", contents(infoLog))
+	}
+	if !contains(infoLog, "STI Normal（未加密）有限公司", t) {
+		t.Errorf("Info has wrong character: %q", contents(infoLog))
+	}
+	if !contains(infoLog, ShrineRealName("STS Normal（加密）有限公司"), t) {
+		t.Errorf("Info has wrong character: %q", contents(infoLog))
+	}
+	if !contains(infoLog, "STS Normal（未加密）有限公司", t) {
+		t.Errorf("Info has wrong character: %q", contents(infoLog))
+	}
+
+	if !contains(infoLog, "STI MIX（未加密1）有限公司", t) {
+		t.Errorf("Info has wrong character: %q", contents(infoLog))
+	}
+	if !contains(infoLog, "STI MIX（未加密2）有限公司", t) {
+		t.Errorf("Info has wrong character: %q", contents(infoLog))
+	}
+	if !contains(infoLog, ShrineRealName("STS MIX（加密）有限公司"), t) {
+		t.Errorf("Info has wrong character: %q", contents(infoLog))
+	}
+	if !contains(infoLog, "STS MIX（未加密）有限公司", t) {
+		t.Errorf("Info has wrong character: %q", contents(infoLog))
+	}
+
+	if !contains(infoLog, ShrineRealName("MTI Normal（加密）有限公司"), t) {
+		t.Errorf("Info has wrong character: %q", contents(infoLog))
+	}
+	if !contains(infoLog, "MTI Normal（未加密）有限公司", t) {
+		t.Errorf("Info has wrong character: %q", contents(infoLog))
+	}
+	if !contains(infoLog, ShrineRealName("MTS Normal（加密）有限公司"), t) {
+		t.Errorf("Info has wrong character: %q", contents(infoLog))
+	}
+	if !contains(infoLog, "MTS Normal（未加密）有限公司", t) {
+		t.Errorf("Info has wrong character: %q", contents(infoLog))
+	}
+	if !contains(infoLog, "MTI MIX（未加密1）有限公司", t) {
+		t.Errorf("Info has wrong character: %q", contents(infoLog))
+	}
+	if !contains(infoLog, "MTI MIX（未加密2）有限公司", t) {
+		t.Errorf("Info has wrong character: %q", contents(infoLog))
+	}
 }
